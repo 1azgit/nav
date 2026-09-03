@@ -29,6 +29,7 @@ REMOTE_HOST = os.environ.get("REMOTE_HOST", "")
 REMOTE_PORT = int(os.environ.get("REMOTE_PORT", "22"))
 REMOTE_USER = os.environ.get("REMOTE_USER", "")
 REMOTE_KEY_PATH = os.environ.get("REMOTE_KEY_PATH", "")
+REMOTE_PASSWORD = os.environ.get("REMOTE_PASSWORD", "")
 REMOTE_KNOWN_HOSTS = os.environ.get("REMOTE_KNOWN_HOSTS", "/root/.ssh/known_hosts")
 REMOTE_CONFIG_PATH = os.environ.get("REMOTE_CONFIG_PATH", "")
 MAX_BODY = 2 * 1024 * 1024
@@ -104,10 +105,32 @@ def atomic_write(path: Path, payload: object) -> None:
             os.unlink(temp_name)
 
 
+def build_connect_kwargs() -> dict[str, object]:
+    """Build deterministic Paramiko authentication options from environment."""
+    kwargs: dict[str, object] = {
+        "port": REMOTE_PORT,
+        "username": REMOTE_USER,
+        "timeout": 10,
+        "look_for_keys": False,
+        "allow_agent": False,
+    }
+    # An empty or missing key is valid in password-only mode. This also makes
+    # the default /dev/null compose mount harmless.
+    if REMOTE_KEY_PATH:
+        key_path = Path(REMOTE_KEY_PATH)
+        if key_path.is_file() and key_path.stat().st_size > 0:
+            kwargs["key_filename"] = REMOTE_KEY_PATH
+    if REMOTE_PASSWORD:
+        kwargs["password"] = REMOTE_PASSWORD
+    if "key_filename" not in kwargs and "password" not in kwargs:
+        raise RuntimeError("remote authentication is not configured")
+    return kwargs
+
+
 def publish(payload: object) -> None:
     if paramiko is None:
         raise RuntimeError("paramiko is not installed")
-    if not all((REMOTE_HOST, REMOTE_USER, REMOTE_KEY_PATH, REMOTE_CONFIG_PATH)):
+    if not all((REMOTE_HOST, REMOTE_USER, REMOTE_CONFIG_PATH)):
         raise RuntimeError("remote publish environment is incomplete")
     destination = posixpath.normpath(REMOTE_CONFIG_PATH)
     if destination in {"/", ".", ""} or not destination.endswith(".json"):
@@ -121,7 +144,7 @@ def publish(payload: object) -> None:
     client.set_missing_host_key_policy(paramiko.RejectPolicy())
     temp_remote = f"{destination}.tmp.{secrets.token_hex(6)}"
     try:
-        client.connect(REMOTE_HOST, port=REMOTE_PORT, username=REMOTE_USER, key_filename=REMOTE_KEY_PATH, timeout=10)
+        client.connect(REMOTE_HOST, **build_connect_kwargs())
         sftp = client.open_sftp()
         try:
             with sftp.file(temp_remote, "w") as remote_file:

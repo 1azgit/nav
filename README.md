@@ -107,11 +107,14 @@ cp .env.example .env
 | `REMOTE_HOST` | 服务器的 Tailscale 主机名或地址 |
 | `REMOTE_PORT` | SSH 端口，默认 `22` |
 | `REMOTE_USER` | SSH 用户 |
+| `REMOTE_PASSWORD` | 可选 SSH 密码；设置后支持密码认证，留空使用私钥 |
 | `REMOTE_CONFIG_PATH` | 远端固定 JSON 文件路径，必须以 `.json` 结尾 |
 | `REMOTE_KEY_PATH_HOST` | NAS 上 SSH 私钥的绝对路径 |
 | `REMOTE_KNOWN_HOSTS_HOST` | NAS 上 `known_hosts` 的绝对路径 |
 
 SSH 用户需要拥有目标目录的写权限。远端主机必须已经写入 `known_hosts`。
+
+认证支持两种方式：私钥模式填写 `REMOTE_KEY_PATH_HOST` 并将 `REMOTE_PASSWORD` 留空；密码模式填写 `REMOTE_PASSWORD`，并将 `REMOTE_KEY_PATH_HOST` 设为 `/dev/null`。密码只从 Docker 环境变量读取，不会进入浏览器或配置 JSON。
 
 ### 3. 启动编辑器
 
@@ -157,3 +160,7 @@ node --check editor/static/app.js
 ## 旧发布流程
 
 `config.toml` 和 `sync_config.sh` 仅为旧部署保留。正式流程应使用 NAS 编辑器生成并发布 `config.json`；服务器上的静态站点也必须改为读取 `config.json`。
+
+## 图标更新
+
+`fetch_icons.py` 与 `config.json` 位于同一目录。运行 `python fetch_icons.py` 会从服务页面获取最新图标，更新配置中的 `icon_path`，并以原子方式写回同目录的 `config.json`。

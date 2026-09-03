@@ -1,19 +1,21 @@
 #!/usr/bin/env python3
-"""Fetch service icons from config.toml and write icon_path fields.
+"""Fetch service icons from config.json and update icon_path fields.
 
 Icons are saved as icons/<first-page-title-word>.<ext>. Services whose page
 title starts with the same English word reuse the same icon.
 
-Run manually after editing config.toml:
+Run manually after editing config.json:
   python fetch_icons.py
 """
 
 from __future__ import annotations
 
 import json
+import os
 import re
 import ssl
 import sys
+import tempfile
 from dataclasses import dataclass, field
 from html.parser import HTMLParser
 from pathlib import Path
@@ -24,7 +26,7 @@ from urllib.request import Request, urlopen
 
 
 ROOT = Path(__file__).resolve().parent
-CONFIG_PATH = ROOT / "config.toml"
+CONFIG_PATH = ROOT / "config.json"
 ICON_DIR = ROOT / "icons"
 TIMEOUT = 6
 
@@ -67,61 +69,29 @@ class PageParser(HTMLParser):
         return " ".join(part.strip() for part in self.title_parts if part.strip())
 
 
-def parse_value(raw: str) -> Any:
-    raw = raw.strip()
-    if raw == "true":
-        return True
-    if raw == "false":
-        return False
-    if raw.startswith('"') and raw.endswith('"'):
-        return json.loads(raw)
-    return raw
+def parse_config(path: Path) -> tuple[dict[str, Any], list[Service]]:
+    payload = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict) or not isinstance(payload.get("services"), list):
+        raise ValueError("config.json must contain a services array")
+    services = [Service(values) for values in payload["services"] if isinstance(values, dict)]
+    if len(services) != len(payload["services"]):
+        raise ValueError("each service in config.json must be an object")
+    return payload, services
 
 
-def parse_config(path: Path) -> tuple[list[str], list[Service]]:
-    header: list[str] = []
-    services: list[Service] = []
-    current: Service | None = None
-
-    for line in path.read_text(encoding="utf-8").splitlines():
-        stripped = line.strip()
-        if stripped == "[[services]]":
-            current = Service()
-            services.append(current)
-            continue
-        if current is None:
-            header.append(line)
-            continue
-        if not stripped or stripped.startswith("#"):
-            continue
-        key, sep, value = stripped.partition("=")
-        if sep:
-            current.values[key.strip()] = parse_value(value)
-
-    return header, services
-
-
-def quote(value: Any) -> str:
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    return json.dumps(str(value or ""), ensure_ascii=False)
-
-
-def write_config(path: Path, header: list[str], services: list[Service]) -> None:
-    keys = ["name", "group", "local_ip", "tailscale_ip", "port", "pinned", "tag", "icon_path"]
-    lines = list(header)
-    while lines and lines[-1] == "":
-        lines.pop()
-    lines.append("")
-
-    for service in services:
-        lines.append("[[services]]")
-        for key in keys:
-            if key in service.values or key == "icon_path":
-                lines.append(f"{key} = {quote(service.values.get(key, ''))}")
-        lines.append("")
-
-    path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+def write_config(path: Path, payload: dict[str, Any], services: list[Service]) -> None:
+    payload["services"] = [service.values for service in services]
+    fd, temp_name = tempfile.mkstemp(prefix=f".{path.name}.", suffix=".tmp", dir=path.parent)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as stream:
+            json.dump(payload, stream, ensure_ascii=False, indent=2)
+            stream.write("\n")
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temp_name, path)
+    finally:
+        if os.path.exists(temp_name):
+            os.unlink(temp_name)
 
 
 def service_url(service: Service) -> str | None:
@@ -239,7 +209,7 @@ def main() -> int:
         return 1
 
     ICON_DIR.mkdir(parents=True, exist_ok=True)
-    header, services = parse_config(CONFIG_PATH)
+    payload, services = parse_config(CONFIG_PATH)
 
     ok = 0
     for idx, service in enumerate(services):
@@ -255,7 +225,7 @@ def main() -> int:
         else:
             print(f"[--] {name}: 未获取到图标")
 
-    write_config(CONFIG_PATH, header, services)
+    write_config(CONFIG_PATH, payload, services)
     print(f"完成：{ok}/{len(services)} 个服务写入 icon_path")
     return 0
 

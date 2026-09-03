@@ -13,10 +13,11 @@ services:
       REMOTE_HOST: ${REMOTE_HOST}
       REMOTE_PORT: ${REMOTE_PORT:-22}
       REMOTE_USER: ${REMOTE_USER}
+      REMOTE_PASSWORD: ${REMOTE_PASSWORD:-}
       REMOTE_KEY_PATH: /run/secrets/remote_key
       REMOTE_KNOWN_HOSTS: /run/secrets/known_hosts
       REMOTE_CONFIG_PATH: ${REMOTE_CONFIG_PATH}
     volumes:
       - ..:/app/nav
-      - ${REMOTE_KEY_PATH_HOST}:/run/secrets/remote_key:ro
+      - ${REMOTE_KEY_PATH_HOST:-/dev/null}:/run/secrets/remote_key:ro
       - ${REMOTE_KNOWN_HOSTS_HOST}:/run/secrets/known_hosts:ro
