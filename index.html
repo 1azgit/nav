@@ -1,0 +1,1432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NAS · OmniNav</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+/* ─────────────────────────────────────────────────────
+   GEMINI LIGHT PALETTE
+   Core hues lifted from Google's Gemini UI:
+   - Warm white background with a faint blue-violet tint
+   - Frosted glass surfaces
+   - Blue (#1a73e8) + Violet (#9c27b0) accent gradient
+   - Subtle blurred mesh blobs in the background
+───────────────────────────────────────────────────── */
+:root {
+  /* backgrounds */
+  --bg:          #f8f9ff;          /* warm white with tiny blue tint */
+  --surface:     rgba(255,255,255,.72);
+  --surface2:    rgba(255,255,255,.88);
+  --surface-solid: #ffffff;
+
+  /* borders */
+  --border:      rgba(0,0,0,.07);
+  --border-mid:  rgba(0,0,0,.1);
+
+  /* text */
+  --text:        #1f1f2e;
+  --text-dim:    #5f6368;
+  --text-muted:  #9aa0a6;
+
+  /* Gemini accent — blue-to-violet gradient */
+  --blue:        #1a73e8;
+  --violet:      #8c52ff;
+  --grad:        linear-gradient(135deg, #1a73e8 0%, #8c52ff 100%);
+  --grad-soft:   linear-gradient(135deg,
+                   rgba(26,115,232,.1) 0%,
+                   rgba(140,82,255,.1) 100%);
+  --grad-glow:   linear-gradient(135deg,
+                   rgba(26,115,232,.18) 0%,
+                   rgba(140,82,255,.18) 100%);
+
+  /* status */
+  --green:       #34a853;
+  --green-soft:  rgba(52,168,83,.15);
+
+  /* geometry */
+  --r:    12px;
+  --r-sm: 8px;
+  --r-xs: 5px;
+
+  /* type */
+  --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+  --sans: system-ui, -apple-system, 'Segoe UI', 'Noto Sans SC', sans-serif;
+  --ease: .18s cubic-bezier(.4,0,.2,1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-weight: 300;
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── TOPBAR ─────────────────────────────────────────── */
+.topbar {
+  position: sticky; top: 0; z-index: 200;
+  height: 56px; padding: 0 24px;
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: rgba(248,249,255,.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid var(--border);
+}
+
+.logo {
+  display: flex; align-items: center; gap: 9px;
+  font-family: var(--sans); font-size: 15px; font-weight: 500;
+  letter-spacing: -.01em; white-space: nowrap;
+  background: var(--grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.logo-sub {
+  font-weight: 300;
+  background: none;
+  -webkit-text-fill-color: var(--text-muted);
+  font-size: 13px;
+}
+
+.dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 2px var(--green-soft);
+  flex-shrink: 0;
+  animation: pulse 2.6s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%,100% { box-shadow: 0 0 0 2px var(--green-soft); }
+  50%      { box-shadow: 0 0 0 5px rgba(52,168,83,.06); }
+}
+
+/* Network toggle — Gemini pill style */
+.net-toggle {
+  display: flex; align-items: center;
+  background: rgba(0,0,0,.04);
+  border: 1px solid var(--border);
+  border-radius: 24px; padding: 3px; gap: 2px;
+}
+.net-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  padding: 5px 16px; border: none; border-radius: 20px;
+  cursor: pointer; white-space: nowrap; letter-spacing: .01em;
+  transition: all var(--ease);
+  background: transparent; color: var(--text-muted);
+}
+.net-btn.active {
+  background: var(--grad);
+  color: #fff;
+  box-shadow: 0 2px 10px rgba(140,82,255,.3);
+}
+.net-btn:not(.active):hover {
+  background: rgba(0,0,0,.06);
+  color: var(--text-dim);
+}
+
+/* ── PAGE WRAPPER ───────────────────────────────────── */
+.page {
+  position: relative; z-index: 1;
+  max-width: 1280px; margin: 0 auto;
+  padding: 24px 24px 0;
+}
+
+/* ── ROW HEADER ─────────────────────────────────────── */
+.row-head {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 12px; user-select: none;
+}
+.row-head.clickable { cursor: pointer; }
+
+.row-title {
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+}
+.row-title.accent {
+  background: var(--grad);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.row-title.dim { color: var(--text-muted); }
+
+.row-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border-mid) 0%, transparent 100%);
+}
+
+.chevron {
+  color: var(--text-muted); font-size: 14px; line-height: 1;
+  transition: transform var(--ease); flex-shrink: 0;
+}
+.row-head.is-closed .chevron { transform: rotate(-90deg); }
+
+/* ── GRIDS ──────────────────────────────────────────── */
+/* 卡片之间的间距：改 gap 数值 */
+.grid { display: grid; gap: 8px; justify-content: center; }
+
+.grid-all {
+  overflow: hidden;
+  transition: max-height .3s cubic-bezier(.4,0,.2,1), opacity .24s ease;
+}
+.grid-all.is-closed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+
+/* ── CARDS — pinned (large) ─────────────────────────── */
+.card {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: flex-end;
+  padding-bottom: 8px; /* 卡片内底部留白：影响 name 到外框底部的距离 */
+  border-radius: var(--r);
+  /* frosted glass */
+  background: var(--surface);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.9);
+  box-shadow:
+    0 1px 3px rgba(0,0,0,.06),
+    0 4px 16px rgba(0,0,0,.05),
+    inset 0 1px 0 rgba(255,255,255,.9);
+  text-decoration: none; color: inherit;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition:
+    transform var(--ease),
+    box-shadow var(--ease),
+    background var(--ease);
+  -webkit-tap-highlight-color: transparent;
+  animation: fadeUp .24s cubic-bezier(.4,0,.2,1) both;
+}
+
+/* subtle shimmer stripe on card */
+.card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg,
+    rgba(255,255,255,.5) 0%,
+    rgba(255,255,255,0) 60%);
+  pointer-events: none;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  background: rgba(255,255,255,.92);
+  box-shadow:
+    0 2px 8px rgba(0,0,0,.07),
+    0 12px 32px rgba(140,82,255,.12),
+    inset 0 1px 0 rgba(255,255,255,1);
+}
+.card:hover::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: var(--r);
+  border: 1.5px solid rgba(140,82,255,.25);
+  pointer-events: none;
+}
+.card:active { transform: translateY(-1px); }
+
+/* small variant */
+.card-sm {
+  border-radius: var(--r-sm);
+  padding-bottom: 7px;
+}
+.card-sm:hover::after { border-radius: var(--r-sm); }
+.card-sm:hover { transform: translateY(-2px); }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── ICON AREA ──────────────────────────────────────── */
+.icon-wrap {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 24px; /* 图标区域底部预留给 name：数值越大，图标越靠上 */
+  display: flex; align-items: center; justify-content: center;
+}
+.card-sm .icon-wrap { bottom: 22px; }
+
+/* 图标外框大小：改 width / height */
+.icon-stack {
+  position: relative;
+  width: 40px; height: 40px;
+}
+
+/* 图标本体和图标文字：font-size 控制 name 首字大小，border-radius 控制圆角 */
+.icon-letter {
+  width: 100%; height: 100%; border-radius: var(--r-sm);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--sans); font-weight: 500; font-size: 24px;
+  text-transform: uppercase;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.card-sm .icon-stack { width: 34px; height: 34px; }
+.card-sm .icon-letter { font-size: 14px; border-radius: 6px; }
+
+/* icons/ 目录中的站点图标：图标尺寸跟随 .icon-stack */
+.app-icon {
+  width: 100%; height: 100%;
+  display: block; object-fit: cover;
+  border-radius: var(--r-sm);
+  box-shadow: 0 2px 8px rgba(0,0,0,.1);
+}
+.card-sm .app-icon { border-radius: 6px; }
+
+/* ── TAG BADGE ──────────────────────────────────────── */
+/* 右下角圆圈：width / height 控制圆圈大小，right / bottom 控制位置，font-size 控制圆圈内文字大小 */
+.tag {
+  position: absolute; right: -5px; bottom: -5px;
+  width: 20px; height: 20px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.94);
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 999px;
+  backdrop-filter: blur(8px);
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  color: var(--text-dim);
+  line-height: 1;
+  pointer-events: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,.12);
+}
+.card-sm .tag { width: 14px; height: 14px; right: -4px; bottom: -4px; font-size: 7px; }
+
+/* ── CARD NAME ──────────────────────────────────────── */
+/* name 显示文字：font-size 控制字号，bottom 控制 name 到外框底部的距离 */
+.card-name {
+  position: absolute; bottom: 7px; left: 4px; right: 4px;
+  font-size: 12px; font-weight: 500; color: var(--text-dim);
+  text-align: center; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; line-height: 1.05;
+  transition: color var(--ease);
+  letter-spacing: 0;
+}
+.card-sm .card-name { font-size: 9px; bottom: 5px; }
+.card:hover .card-name { color: var(--text-dim); }
+
+/* ── GROUPED ALL SERVICES ───────────────────────────── */
+.group-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)); /* 分组显示列数：桌面一行 2 个分组 */
+  gap: 12px;
+  overflow: hidden;
+}
+.group-layout.is-closed { max-height: 0 !important; opacity: 0; pointer-events: none; }
+.group-layout .card { animation: none; }
+
+.service-group {
+  min-width: 0;
+}
+
+.group-title {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 7px;
+  font-size: 11px; font-weight: 500; color: var(--text-muted);
+}
+.group-title::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg, var(--border) 0%, transparent 100%);
+}
+.group-count {
+  font-family: var(--mono); font-size: 9px; color: var(--text-muted);
+}
+.group-more {
+  min-height: 32px; padding: 4px 10px; margin: 8px 0 0;
+  border: 1px solid var(--border-mid); border-radius: var(--r-xs);
+  background: var(--surface2); color: var(--text-dim);
+  font: 500 11px var(--sans); cursor: pointer;
+}
+.group-more:hover { color: var(--blue); border-color: rgba(26,115,232,.3); }
+.empty-state {
+  margin: 32px auto; max-width: 420px; padding: 20px;
+  border: 1px solid var(--border-mid); border-radius: var(--r);
+  background: var(--surface2); color: var(--text-dim); text-align: center;
+}
+.group-grid {
+  display: grid;
+  gap: 8px;
+  justify-content: start;
+}
+
+/* ── GAP ────────────────────────────────────────────── */
+.gap { height: 24px; }
+
+/* ── BOTTOM PLACEHOLDER AREA ────────────────────────── */
+.bottom-area {
+  margin-top: 32px;
+  position: relative; z-index: 1;
+}
+
+.divider {
+  display: flex; align-items: center; gap: 14px;
+}
+.divider-line {
+  flex: 1; height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%, var(--border-mid) 30%,
+    var(--border-mid) 70%, transparent 100%);
+}
+.divider-text {
+  font-family: var(--sans); font-size: 10px; font-weight: 500;
+  letter-spacing: .1em; text-transform: uppercase;
+  color: var(--text-muted); white-space: nowrap;
+}
+
+/* ── ALL-APPS TOGGLE BUTTON ─────────────────────────── */
+.all-toggle-btn {
+  display: flex; align-items: center; justify-content: center; gap: 7px;
+  width: 100%; height: 42px; margin-bottom: 12px;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  letter-spacing: .02em; color: var(--text-dim);
+  background: rgba(255,255,255,.65);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: var(--r); cursor: pointer;
+  transition: all var(--ease);
+}
+.all-toggle-btn:hover {
+  background: white;
+  border-color: rgba(140,82,255,.28);
+  color: #8c52ff;
+  box-shadow: 0 2px 12px rgba(140,82,255,.1);
+}
+.all-toggle-chevron {
+  font-size: 14px; line-height: 1;
+  transition: transform var(--ease); display: inline-block;
+}
+.all-toggle-chevron.rot { transform: rotate(-90deg); }
+
+/* ── QR TOOL ────────────────────────────────────────── */
+.qr-tool {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 16px;
+  padding-bottom: 52px;
+}
+@media (max-width: 700px) { .qr-tool { grid-template-columns: 1fr; } }
+
+.qr-panel {
+  border-radius: var(--r);
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.9);
+  box-shadow: 0 1px 3px rgba(0,0,0,.06), 0 4px 16px rgba(0,0,0,.04),
+              inset 0 1px 0 rgba(255,255,255,.9);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* panel top bar with button */
+.qr-panel-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  gap: 10px;
+}
+.qr-panel-label {
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--text-muted);
+}
+.qr-btn {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  padding: 6px 14px; border: none; border-radius: 20px;
+  cursor: pointer; white-space: nowrap; letter-spacing: .01em;
+  background: var(--grad); color: #fff;
+  box-shadow: 0 2px 8px rgba(140,82,255,.25);
+  transition: all var(--ease);
+  flex-shrink: 0;
+}
+.qr-btn:hover {
+  box-shadow: 0 4px 14px rgba(140,82,255,.38);
+  transform: translateY(-1px);
+}
+.qr-btn:active { transform: translateY(0); }
+
+/* textarea area */
+.qr-textarea-wrap {
+  flex: 1; position: relative; min-height: 140px;
+}
+.qr-textarea {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: none; outline: none; resize: none;
+  background: transparent;
+  font-family: var(--mono); font-size: 12px; line-height: 1.65;
+  color: var(--text); padding: 14px;
+  caret-color: #8c52ff;
+}
+.qr-textarea::placeholder { color: var(--text-muted); }
+.qr-textarea[readonly] { color: var(--text-dim); cursor: default; }
+
+/* copy button inside readonly panel */
+.qr-copy-btn {
+  position: absolute; bottom: 10px; right: 12px;
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  padding: 4px 12px; border: 1px solid var(--border);
+  border-radius: 12px; cursor: pointer;
+  background: rgba(255,255,255,.8); color: var(--text-dim);
+  transition: all var(--ease); letter-spacing: .01em;
+  backdrop-filter: blur(6px);
+}
+.qr-copy-btn:hover {
+  background: white; color: var(--text);
+  border-color: rgba(140,82,255,.3);
+}
+
+/* QR modal overlay */
+.qr-overlay {
+  display: none; position: fixed; inset: 0; z-index: 9000;
+  background: rgba(30,30,50,.35);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  align-items: center; justify-content: center;
+}
+.qr-overlay.show { display: flex; }
+.qr-modal {
+  background: white;
+  border-radius: 20px;
+  padding: 28px 32px;
+  box-shadow: 0 24px 60px rgba(0,0,0,.18);
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  animation: modalIn .22s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.qr-modal-title {
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text-dim); letter-spacing: .04em;
+}
+.qr-modal canvas { border-radius: 8px; }
+.qr-modal-close {
+  font-family: var(--sans); font-size: 12px; font-weight: 500;
+  padding: 7px 24px; border: none; border-radius: 20px;
+  cursor: pointer; background: var(--grad); color: #fff;
+  box-shadow: 0 2px 8px rgba(140,82,255,.25);
+  transition: all var(--ease);
+}
+.qr-modal-close:hover { box-shadow: 0 4px 14px rgba(140,82,255,.38); }
+
+/* ── DOCKER PROXY TOOL ──────────────────────────────── */
+.docker-tool {
+  margin-top: 16px;
+  padding-bottom: 52px;
+}
+
+.docker-input-row {
+  display: flex; gap: 10px; align-items: stretch;
+  margin-bottom: 14px;
+}
+.docker-input {
+  flex: 1; height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  background: rgba(255,255,255,.75);
+  backdrop-filter: blur(10px);
+  padding: 0 16px;
+  font-family: var(--mono); font-size: 13px; color: var(--text);
+  outline: none; transition: all var(--ease);
+  caret-color: #8c52ff;
+}
+.docker-input::placeholder { color: var(--text-muted); }
+.docker-input:focus {
+  border-color: rgba(140,82,255,.4);
+  box-shadow: 0 0 0 3px rgba(140,82,255,.1);
+  background: white;
+}
+
+.docker-go-btn {
+  height: 44px; padding: 0 22px;
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  border: none; border-radius: var(--r); cursor: pointer;
+  white-space: nowrap; letter-spacing: .01em;
+  background: var(--grad); color: #fff;
+  box-shadow: 0 2px 10px rgba(140,82,255,.3);
+  transition: all var(--ease); flex-shrink: 0;
+}
+.docker-go-btn:hover {
+  box-shadow: 0 4px 16px rgba(140,82,255,.42);
+  transform: translateY(-1px);
+}
+.docker-go-btn:active { transform: translateY(0); }
+
+/* output command list */
+.docker-cmds { display: flex; flex-direction: column; gap: 8px; }
+
+.docker-cmd-item {
+  display: flex; align-items: center; gap: 0;
+  border-radius: var(--r);
+  background: rgba(255,255,255,.72);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255,255,255,.9);
+  box-shadow: 0 1px 3px rgba(0,0,0,.05), 0 4px 12px rgba(0,0,0,.04),
+              inset 0 1px 0 rgba(255,255,255,.9);
+  cursor: pointer;
+  transition: all var(--ease);
+  overflow: hidden;
+}
+.docker-cmd-item:hover {
+  border-color: rgba(140,82,255,.25);
+  box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 8px 24px rgba(140,82,255,.1),
+              inset 0 1px 0 rgba(255,255,255,1);
+  transform: translateY(-1px);
+}
+.docker-cmd-item:active { transform: translateY(0); }
+
+.docker-cmd-step {
+  flex-shrink: 0; width: 38px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; font-weight: 500;
+  color: #fff;
+  background: var(--grad);
+}
+.docker-cmd-text {
+  flex: 1; padding: 0 14px;
+  font-family: var(--mono); font-size: 12px; line-height: 1.5;
+  color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.docker-cmd-copy {
+  flex-shrink: 0; padding: 0 14px;
+  font-family: var(--sans); font-size: 11px; font-weight: 500;
+  color: var(--text-muted); letter-spacing: .02em;
+  transition: color var(--ease);
+}
+.docker-cmd-item:hover .docker-cmd-copy { color: #8c52ff; }
+
+/* flash animation on copy */
+.docker-cmd-item.copied {
+  border-color: rgba(52,168,83,.35) !important;
+  background: rgba(52,168,83,.06) !important;
+}
+.docker-cmd-item.copied .docker-cmd-copy { color: var(--green) !important; }
+
+/* empty/error hint */
+.docker-hint {
+  padding: 32px 0; text-align: center;
+  font-family: var(--mono); font-size: 12px; color: var(--text-muted);
+}
+
+/* ── TOAST ──────────────────────────────────────────── */
+.toast {
+  position: fixed; bottom: 28px; left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 10px 20px;
+  font-family: var(--sans); font-size: 13px;
+  font-weight: 400; color: var(--text-dim);
+  white-space: nowrap; pointer-events: none; opacity: 0;
+  transition: all .22s cubic-bezier(.4,0,.2,1); z-index: 999;
+  box-shadow: 0 8px 30px rgba(0,0,0,.1);
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ── MOBILE ─────────────────────────────────────────── */
+@media (max-width: 600px) {
+  .page { padding: 16px 14px 0; }
+  .icon-wrap { bottom: 24px; }
+  .card { padding-bottom: 7px; justify-content: flex-end; }
+  /* 手机端图标外框大小 */
+  .icon-stack { width: 42px; height: 42px; }
+  /* 手机端图标文字大小 */
+  .icon-letter { font-size: 20px; border-radius: 10px; }
+  /* 手机端右下角圆圈大小 / 位置 / 文字大小 */
+  .tag { width: 17px; height: 17px; right: -5px; bottom: -5px; font-size: 8px; }
+  /* 手机端 name 字号 */
+  .card-name { display: block; font-size: 11px; bottom: 7px; }
+  .group-layout { grid-template-columns: 1fr; gap: 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<header class="topbar">
+  <div class="logo">
+    <div class="dot"></div>
+    OmniNav
+    <span class="logo-sub">/ NAS</span>
+  </div>
+  <div class="net-toggle">
+    <button class="net-btn active" id="btn-local"     onclick="setMode('local')">Local</button>
+    <button class="net-btn"        id="btn-tailscale" onclick="setMode('tailscale')">Tailscale</button>
+  </div>
+</header>
+
+<!-- PAGE -->
+<div class="page" id="page">
+  <p style="color:var(--text-muted);font-size:12px;font-family:var(--mono)">Loading…</p>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════
+   DOCKER PROXY — hubproxy 路由规则
+   ▸ 修改 PROXY_DOMAIN 为你自己的域名即可
+   ▸ 路由规则来自 github.com/sky22333/hubproxy：
+     - Docker Hub：yourdomain.com/<image>
+     - 其他 Registry：yourdomain.com/<registry>/<image>
+═══════════════════════════════════════════════════ */
+const PROXY_DOMAIN = 'dp.1az.cc';   // ← 在此修改为你的代理域名
+
+// hubproxy 支持的非 Docker Hub registry 列表
+// 格式：原始 registry host（小写）
+const PROXY_REGISTRIES = [
+  'ghcr.io',           // GitHub Container Registry
+  'gcr.io',            // Google Container Registry
+  'quay.io',           // Red Hat Quay
+  'registry.k8s.io',   // Kubernetes
+  'k8s.gcr.io',        // Kubernetes (old)
+  'mcr.microsoft.com', // Microsoft
+];
+
+/* ═══════════════════════════════════════════════════
+   CONSTANTS
+═══════════════════════════════════════════════════ */
+const PIN_COLS = 8;
+const ALL_COLS = 10;
+const GAP      = 8;
+const PAGE_PAD = 48;   /* 2 × 24px side padding */
+const MAX_W    = 1280;
+
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
+let mode    = 'local';
+let appData = [];
+let groupData = [];
+let allOpen = false;
+const expandedGroups = new Set();
+
+/* ═══════════════════════════════════════════════════
+   COLORS — Gemini-ish gradient palette per initial
+═══════════════════════════════════════════════════ */
+const PALETTES = [
+  ['#1a73e8','#4285f4'],  // blue
+  ['#8c52ff','#a67cff'],  // violet
+  ['#e8710a','#f4a437'],  // orange
+  ['#34a853','#5cb85c'],  // green
+  ['#ea4335','#ff7043'],  // red-coral
+  ['#00acc1','#26c6da'],  // teal
+  ['#7b1fa2','#ab47bc'],  // purple
+  ['#f06292','#f48fb1'],  // pink
+  ['#0288d1','#29b6f6'],  // light blue
+  ['#388e3c','#66bb6a'],  // mid-green
+];
+
+function nameGrad(name) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return PALETTES[Math.abs(h) % PALETTES.length];
+}
+
+function getUrl(item) {
+  const ip    = mode === 'local' ? item.local_ip : item.tailscale_ip;
+  const port = String(item.port || '').trim();
+  const proto = port === '443' || port.startsWith('443/') ? 'https' : 'http';
+  if (!ip) return '#';
+  if (!port) return `${proto}://${ip}`;
+  if (/^\d+\//.test(port)) {
+    const slash = port.indexOf('/');
+    return `${proto}://${ip}:${port.slice(0, slash)}/${port.slice(slash + 1)}`;
+  }
+  return `${proto}://${ip}:${port}`;
+}
+
+/* ═══════════════════════════════════════════════════
+   CARD SIZE
+═══════════════════════════════════════════════════ */
+function calcSizes() {
+  const vw      = Math.min(document.documentElement.clientWidth, MAX_W);
+  const isPhone = vw <= 600;
+  // 每行卡片数量：<=420px 手机 4 列，<=700px 设备 5 列，桌面使用 PIN_COLS / ALL_COLS
+  const cols    = vw <= 420 ? 4 : (vw <= 700 ? 5 : PIN_COLS);
+  const allCols = vw <= 420 ? 4 : (vw <= 700 ? 5 : ALL_COLS);
+  // 卡片外框最大尺寸：手机 / 平板 / 桌面分别控制，想缩小或放大外框改这里
+  const maxCard = vw <= 600 ? 84 : (vw <= 900 ? 96 : 108);
+  const pad     = isPhone ? 28 : PAGE_PAD;
+  const usable  = vw - pad;
+  // 实际卡片外框大小：不会超过 maxCard
+  const pinCard = Math.min(Math.floor((usable - GAP * (cols - 1)) / cols), maxCard);
+  return { pinCard, pinCols: cols, allCols };
+}
+
+/* ═══════════════════════════════════════════════════
+   ICON HELPERS
+═══════════════════════════════════════════════════ */
+function makeLetterEl(name) {
+  const [c1, c2] = nameGrad(name);
+  const d = document.createElement('div');
+  d.className = 'icon-letter';
+  d.style.background = `linear-gradient(135deg, ${c1} 0%, ${c2} 100%)`;
+  d.style.color = '#fff';
+  d.textContent = Array.from((name || '?').trim())[0]?.toLocaleUpperCase() || '?';
+  return d;
+}
+
+function iconKeyFromTitle(title) {
+  const match = String(title || '').trim().toLowerCase().match(/[a-z][a-z0-9]*/);
+  return match ? match[0] : '';
+}
+
+function iconCandidates(item) {
+  if (item.icon_path) return [item.icon_path];
+
+  // 未填写 icon_path 时，按页面标题第一个英文单词自动查找 icons/<key>.*。
+  // 例如 "wp-test" 使用 icons/wp.png；相同 key 的服务会共用同一个图标。
+  const key = iconKeyFromTitle(item.name);
+  return key ? ['png', 'svg', 'ico', 'webp', 'jpg'].map(ext => `icons/${key}.${ext}`) : [];
+}
+
+function buildIconWrap(item) {
+  const wrap = document.createElement('div');
+  wrap.className = 'icon-wrap';
+  const stack = document.createElement('div');
+  stack.className = 'icon-stack';
+
+  const candidates = iconCandidates(item);
+  if (candidates.length) {
+    const img = document.createElement('img');
+    img.className = 'app-icon';
+    img.alt = item.name;
+    let current = 0;
+    img.onerror = () => {
+      current += 1;
+      if (current < candidates.length) {
+        img.src = candidates[current];
+      } else {
+        img.remove();
+        stack.prepend(makeLetterEl(item.name));
+      }
+    };
+    img.src = candidates[current];
+    stack.appendChild(img);
+  } else {
+    stack.appendChild(makeLetterEl(item.name));
+  }
+
+  if (item.tag) {
+    const b = document.createElement('span');
+    b.className = 'tag';
+    b.textContent = Array.from(String(item.tag).trim())[0]?.toLocaleUpperCase() || '';
+    stack.appendChild(b);
+  }
+
+  wrap.appendChild(stack);
+  return wrap;
+}
+
+/* ═══════════════════════════════════════════════════
+   BUILD CARD
+═══════════════════════════════════════════════════ */
+function buildCard(item, idx, small, size, animate = true) {
+  const url  = getUrl(item);
+  const card = document.createElement('a');
+  card.className = 'card' + (small ? ' card-sm' : '');
+  card.href      = url;
+  card.target    = '_blank';
+  card.rel       = 'noopener noreferrer';
+  card.title     = `${item.name} — ${url}`;
+  card.style.cssText = `width:${size}px;height:${size}px;animation-delay:${animate ? idx * .03 : 0}s`;
+
+  card.appendChild(buildIconWrap(item));
+
+  const nm = document.createElement('span');
+  nm.className   = 'card-name';
+  nm.textContent = item.name;
+  card.appendChild(nm);
+
+  return card;
+}
+
+function groupServices(items) {
+  const byGroup = new Map(groupData.map(group => [group.id, []]));
+  items.forEach(item => {
+    if (byGroup.has(item.group_id)) byGroup.get(item.group_id).push(item);
+  });
+  return groupData
+    .slice()
+    .sort((a, b) => a.order - b.order)
+    .map(group => ({ ...group, services: byGroup.get(group.id).sort((a, b) => a.order - b.order) }))
+    .filter(group => group.services.length);
+}
+
+function buildServiceGroup(group, groupIdx, cardSize, allCols) {
+  const box = document.createElement('section');
+  const count = group.services.length;
+  const limit = Number.isInteger(group.max_items) ? group.max_items : null;
+  const expanded = expandedGroups.has(group.id);
+  const visible = limit && !expanded ? group.services.slice(0, limit) : group.services;
+  box.className = 'service-group';
+
+  const title = document.createElement('div');
+  title.className = 'group-title';
+  const titleText = document.createElement('span');
+  titleText.textContent = group.name;
+  const titleCount = document.createElement('span');
+  titleCount.className = 'group-count';
+  titleCount.textContent = count;
+  title.appendChild(titleText);
+  title.appendChild(titleCount);
+  box.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'group-grid';
+  const cols = Math.min(Math.max(1, Number(group.columns) || 1), allCols, Math.max(1, visible.length));
+  grid.style.gridTemplateColumns = colsTpl(Math.max(1, cols), cardSize);
+  visible.forEach((item, i) => {
+    grid.appendChild(buildCard(item, groupIdx * 10 + i, false, cardSize, false));
+  });
+  box.appendChild(grid);
+  if (limit && count > limit) {
+    const more = document.createElement('button');
+    more.className = 'group-more';
+    more.textContent = expanded ? '收起' : `更多 ${count - limit} 项`;
+    more.setAttribute('aria-expanded', String(expanded));
+    more.addEventListener('click', () => {
+      expanded ? expandedGroups.delete(group.id) : expandedGroups.add(group.id);
+      render();
+    });
+    box.appendChild(more);
+  }
+  return box;
+}
+
+/* ═══════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════ */
+function render() {
+  const page = document.getElementById('page');
+  page.innerHTML = '';
+
+  const { pinCard, pinCols, allCols } = calcSizes();
+
+  /* ── 1. Pinned (only shown before "显示全部") ─────── */
+  const pinned = appData.filter(a => a.pinned);
+  if (!allOpen && pinned.length) {
+    const pinRows = Math.ceil(pinned.length / pinCols);
+    const head = mkEl('div', 'row-head');
+    head.innerHTML = `
+      <span class="row-title accent">▸ 常用</span>
+      <div class="row-line"></div>`;
+    page.appendChild(head);
+
+    const grid = mkEl('div', 'grid');
+    grid.style.gridTemplateColumns = colsTpl(pinCols, pinCard);
+    grid.style.maxHeight = (pinRows * pinCard + Math.max(0, pinRows - 1) * GAP + 30) + 'px';
+    grid.style.overflow  = 'hidden';
+    pinned.forEach((item, i) => grid.appendChild(buildCard(item, i, false, pinCard)));
+    page.appendChild(grid);
+
+    page.appendChild(mkEl('div', 'gap'));
+  }
+
+  /* ── 2. All-apps (grouped, collapsible) ─────────── */
+  const groupedItems = allOpen ? appData : appData.filter(a => !a.pinned);
+  if (groupedItems.length) {
+    /* row header (kept small, label only) */
+    const head2 = mkEl('div', 'row-head');
+    head2.innerHTML = `
+      <span class="row-title dim">全部服务</span>
+      <div class="row-line"></div>`;
+
+    /* big prominent toggle button */
+    const toggleBtn = mkEl('button', 'all-toggle-btn');
+    toggleBtn.id = 'allToggleBtn';
+    toggleBtn.innerHTML = allOpen
+      ? '<span class="all-toggle-chevron">▾</span> 收起全部'
+      : '<span class="all-toggle-chevron rot">▾</span> 显示全部';
+
+    const grid2 = mkEl('div', 'group-layout' + (allOpen ? '' : ' is-closed'));
+    groupServices(groupedItems).forEach((group, i) => {
+      grid2.appendChild(buildServiceGroup(group, i, pinCard, allCols));
+    });
+
+    function setAllMaxHeight() {
+      grid2.style.maxHeight = allOpen ? grid2.scrollHeight + 4 + 'px' : '0';
+    }
+
+    function doToggle() {
+      allOpen = !allOpen;
+      render();
+    }
+    toggleBtn.addEventListener('click', doToggle);
+
+    page.appendChild(head2);
+    page.appendChild(toggleBtn);
+    page.appendChild(grid2);
+    setAllMaxHeight();
+  }
+
+  /* ── 3. Base64 / QR Tool ────────────────────────── */
+  const bottom = mkEl('div', 'bottom-area');
+  bottom.innerHTML = `
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">Base64 · QR 工具</span>
+      <div class="divider-line"></div>
+    </div>
+    <div class="qr-tool">
+      <!-- LEFT: plain text -->
+      <div class="qr-panel" id="qrPanelLeft">
+        <div class="qr-panel-head">
+          <span class="qr-panel-label">原始文本</span>
+          <button class="qr-btn" id="qrBtnText">生成文本二维码</button>
+        </div>
+        <div class="qr-textarea-wrap">
+          <textarea class="qr-textarea" id="qrInput" placeholder="在此输入文本…" spellcheck="false"></textarea>
+        </div>
+      </div>
+      <!-- RIGHT: base64 input/output -->
+      <div class="qr-panel" id="qrPanelRight">
+        <div class="qr-panel-head">
+          <span class="qr-panel-label">Base64 文本</span>
+          <button class="qr-btn" id="qrBtnB64">生成加密二维码</button>
+        </div>
+        <div class="qr-textarea-wrap">
+          <textarea class="qr-textarea" id="qrOutput" placeholder="在此输入或查看 Base64…" spellcheck="false"></textarea>
+          <button class="qr-copy-btn" id="qrCopyBtn">复制</button>
+        </div>
+      </div>
+    </div>`;
+  page.appendChild(bottom);
+
+  /* overlay must live on <body> directly — any ancestor with
+     backdrop-filter creates a new stacking context that traps
+     z-index, making fixed children unable to escape.          */
+  let overlay = document.getElementById('qrOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'qrOverlay';
+    overlay.className = 'qr-overlay';
+    overlay.innerHTML = `
+      <div class="qr-modal">
+        <div class="qr-modal-title" id="qrModalTitle">二维码</div>
+        <canvas id="qrCanvas"></canvas>
+        <button class="qr-modal-close" id="qrModalClose">关闭</button>
+      </div>`;
+    document.body.appendChild(overlay);
+  }
+
+  initQrTool();
+
+  /* ── 4. Docker Proxy Tool ────────────────────────── */
+  const dockerSection = mkEl('div', 'bottom-area');
+  dockerSection.innerHTML = `
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">Docker / GitHub 加速</span>
+      <div class="divider-line"></div>
+    </div>
+    <div class="docker-tool">
+      <div class="docker-input-row">
+        <input class="docker-input" id="dockerInput"
+          placeholder="输入镜像或 GitHub URL，如 ghcr.io/user/image:tag、github.com/owner/repo.git"
+          spellcheck="false" autocomplete="off" />
+        <button class="docker-go-btn" id="dockerGoBtn">获取命令</button>
+      </div>
+      <div class="docker-cmds" id="dockerCmds">
+        <div class="docker-hint">输入地址后点击「获取命令」</div>
+      </div>
+    </div>`;
+  page.appendChild(dockerSection);
+  initDockerTool();
+}
+
+/* ═══════════════════════════════════════════════════
+   DOCKER PROXY TOOL
+═══════════════════════════════════════════════════ */
+function initDockerTool() {
+  const input = document.getElementById('dockerInput');
+  const btn   = document.getElementById('dockerGoBtn');
+  const cmds  = document.getElementById('dockerCmds');
+  if (!input) return;
+
+  function normalizeRaw(raw) {
+    return raw
+      .replace(/^docker\s+pull\s+/i, '')
+      .replace(/^curl\s+-L\s+-O\s+/i, '')
+      .replace(/^git\s+clone\s+/i, '')
+      .replace(/^curl\s+/i, '')
+      .trim();
+  }
+
+  function unwrapUrl(raw) {
+    const stripped = raw.trim();
+    const nested = stripped.match(/^https?:\/\/[^/]+\/(https?:\/\/.+)$/i);
+    if (nested) return nested[1];
+    return stripped;
+  }
+
+  function toUrl(raw) {
+    const value = unwrapUrl(normalizeRaw(raw));
+    if (!value) return '';
+    return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+  }
+
+  function classifyGithub(urlText) {
+    let url;
+    try {
+      url = new URL(urlText);
+    } catch {
+      return null;
+    }
+
+    const host = url.hostname.toLowerCase();
+    const path = url.pathname.replace(/\/+$/, '');
+    const accelUrl = `https://${PROXY_DOMAIN}/${urlText}`;
+
+    if (host === 'api.github.com') {
+      return [{
+        step: '①',
+        label: 'GitHub API 加速',
+        cmd: `curl "${accelUrl}"`,
+      }];
+    }
+
+    if (host === 'github.com' && /\/releases\/download\//i.test(path)) {
+      return [{
+        step: '①',
+        label: 'Release 下载',
+        cmd: `curl -L -O "${accelUrl}"`,
+      }];
+    }
+
+    if (host === 'github.com' && /\.git$/i.test(path)) {
+      return [{
+        step: '①',
+        label: 'Git Clone',
+        cmd: `git clone ${accelUrl}`,
+      }];
+    }
+
+    return null;
+  }
+
+  function generate() {
+    const raw = input.value.trim();
+    const normalized = normalizeRaw(raw);
+    const imageInput = normalized.replace(/^https?:\/\//i, '').trim();
+    const urlText = toUrl(raw);
+    if (!raw) { showToast('请输入镜像地址'); return; }
+
+    const githubLines = classifyGithub(urlText);
+    if (githubLines) {
+      renderCommands(githubLines);
+      return;
+    }
+
+    /* ── parse registry + imagePath ─────────────────
+       hubproxy 路由规则：
+       · Docker Hub（无已知 registry 前缀）
+         → PROXY_DOMAIN/image[:tag]
+       · 其他已知 registry
+         → PROXY_DOMAIN/registry.host/image[:tag]
+    ─────────────────────────────────────────────── */
+    const parts = imageInput.split('/');
+    let registry  = '';
+    let imagePath = imageInput;
+
+    // 第一段含 '.' 或 ':' 才视为 registry host
+    if (parts.length >= 2 && /[.:]/.test(parts[0])) {
+      registry  = parts[0].toLowerCase();
+      imagePath = parts.slice(1).join('/');
+    }
+
+    const isKnownRegistry = PROXY_REGISTRIES.includes(registry);
+
+    // proxyRef: hubproxy 格式
+    //   已知 registry → domain/registry/image
+    //   Docker Hub   → domain/image
+    const proxyRef = isKnownRegistry
+      ? `${PROXY_DOMAIN}/${registry}/${imagePath}`
+      : `${PROXY_DOMAIN}/${imagePath}`;
+
+    // originalRef: 还原完整原始地址
+    const originalRef = (registry && isKnownRegistry)
+      ? `${registry}/${imagePath}`
+      : imagePath;   // Docker Hub 直接用 image 名
+
+    const lines = [
+      { step: '①', label: '拉取代理镜像', cmd: `docker pull ${proxyRef}` },
+      { step: '②', label: '重命名镜像',   cmd: `docker tag ${proxyRef} ${originalRef}` },
+      { step: '③', label: '删除代理镜像', cmd: `docker rmi ${proxyRef}` },
+    ];
+
+    renderCommands(lines);
+  }
+
+  function renderCommands(lines) {
+    cmds.innerHTML = '';
+    lines.forEach(({ step, cmd }) => {
+      const item = mkEl('div', 'docker-cmd-item');
+      item.innerHTML = `
+        <div class="docker-cmd-step">${step}</div>
+        <div class="docker-cmd-text">${escHtml(cmd)}</div>
+        <div class="docker-cmd-copy">点击复制</div>`;
+      item.addEventListener('click', () => {
+        navigator.clipboard.writeText(cmd).then(
+          ()  => flashCopy(item, cmd),
+          ()  => { fallbackCopy(cmd); flashCopy(item, cmd); }
+        );
+      });
+      cmds.appendChild(item);
+    });
+  }
+
+  btn.addEventListener('click', generate);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') generate(); });
+}
+
+function flashCopy(item, cmd) {
+  const copyEl = item.querySelector('.docker-cmd-copy');
+  item.classList.add('copied');
+  copyEl.textContent = '已复制 ✓';
+  showToast('已复制: ' + (cmd.length > 42 ? cmd.slice(0, 42) + '…' : cmd));
+  setTimeout(() => { item.classList.remove('copied'); copyEl.textContent = '点击复制'; }, 1800);
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;opacity:0';
+  document.body.appendChild(ta);
+  ta.select(); document.execCommand('copy');
+  document.body.removeChild(ta);
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+/* ═══════════════════════════════════════════════════
+   UTILS
+═══════════════════════════════════════════════════ */
+function mkEl(tag, cls) {
+  const e = document.createElement(tag);
+  e.className = cls; return e;
+}
+function colsTpl(n, sz) { return `repeat(${n}, ${sz}px)`; }
+
+/* ═══════════════════════════════════════════════════
+   NETWORK MODE
+═══════════════════════════════════════════════════ */
+function setMode(m) {
+  mode = m;
+  document.getElementById('btn-local').classList.toggle('active', m === 'local');
+  document.getElementById('btn-tailscale').classList.toggle('active', m === 'tailscale');
+  render();
+  showToast(m === 'local' ? '已切换 → 本地网络' : '已切换 → Tailscale');
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2100);
+}
+
+/* ═══════════════════════════════════════════════════
+   RESIZE
+═══════════════════════════════════════════════════ */
+let _rt;
+window.addEventListener('resize', () => { clearTimeout(_rt); _rt = setTimeout(render, 100); });
+
+/* ═══════════════════════════════════════════════════
+   QR TOOL — Base64 encoder + QR code generator
+   Uses qrcode-generator (MIT) via CDN-equivalent inline
+═══════════════════════════════════════════════════ */
+function initQrTool() {
+  const input      = document.getElementById('qrInput');
+  const output     = document.getElementById('qrOutput');
+  const btnText    = document.getElementById('qrBtnText');
+  const btnB64     = document.getElementById('qrBtnB64');
+  const copyBtn    = document.getElementById('qrCopyBtn');
+  const overlay    = document.getElementById('qrOverlay');
+  const canvas     = document.getElementById('qrCanvas');
+  const modalTitle = document.getElementById('qrModalTitle');
+  const closeBtn   = document.getElementById('qrModalClose');
+
+  if (!input) return; // guard against re-render race
+
+  let syncing = false;
+
+  function encodeBase64(raw) {
+    return btoa(unescape(encodeURIComponent(raw)));
+  }
+
+  function decodeBase64(b64) {
+    return decodeURIComponent(escape(atob(b64.replace(/\s+/g, ''))));
+  }
+
+  /* live encode as user types */
+  input.addEventListener('input', () => {
+    if (syncing) return;
+    const raw = input.value;
+    syncing = true;
+    if (!raw) {
+      output.value = '';
+      syncing = false;
+      return;
+    }
+    try {
+      output.value = encodeBase64(raw);
+    } catch {
+      output.value = '[编码错误]';
+    }
+    syncing = false;
+  });
+
+  /* live decode as base64 is pasted or typed */
+  output.addEventListener('input', () => {
+    if (syncing) return;
+    const b64 = output.value.trim();
+    syncing = true;
+    if (!b64) {
+      input.value = '';
+      syncing = false;
+      return;
+    }
+    try {
+      input.value = decodeBase64(b64);
+    } catch {
+      input.value = '[Base64 解码错误]';
+    }
+    syncing = false;
+  });
+
+  /* generate QR from plain text */
+  btnText.addEventListener('click', () => {
+    const txt = input.value.trim();
+    if (!txt) { showToast('请先输入文本'); return; }
+    showQR(txt, '文本二维码');
+  });
+
+  /* generate QR from base64 */
+  btnB64.addEventListener('click', () => {
+    const b64 = output.value.trim();
+    if (!b64) { showToast('请先输入或生成 Base64'); return; }
+    showQR(b64, '加密二维码 (Base64)');
+  });
+
+  /* copy base64 output */
+  copyBtn.addEventListener('click', () => {
+    const val = output.value;
+    if (!val) { showToast('没有内容可复制'); return; }
+    navigator.clipboard.writeText(val).then(
+      () => showToast('已复制到剪贴板'),
+      () => { output.select(); document.execCommand('copy'); showToast('已复制'); }
+    );
+  });
+
+  /* close modal */
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('show');
+  });
+  closeBtn.addEventListener('click', () => overlay.classList.remove('show'));
+
+  function showQR(data, title) {
+    modalTitle.textContent = title;
+    drawQR(canvas, data);
+    overlay.classList.add('show');
+  }
+}
+
+/* ── Tiny QR renderer (Reed-Solomon, pure JS) ───────
+   Minimal self-contained implementation — no deps.
+   Supports alphanumeric + byte mode, up to ~500 chars.
+─────────────────────────────────────────────────── */
+function drawQR(canvas, text) {
+  showToast('二维码功能需要本地 QR 库，当前版本未启用');
+}
+
+function _renderQR(canvas, text) {
+  /* qrcode.js creates a div with a canvas/img inside;
+     we redirect it to our modal canvas directly.    */
+  const tmp = document.createElement('div');
+  tmp.style.cssText = 'position:absolute;visibility:hidden;pointer-events:none';
+  document.body.appendChild(tmp);
+
+  try {
+    /* eslint-disable no-new */
+    new QRCode(tmp, {
+      text,
+      width:  240,
+      height: 240,
+      colorDark:  '#1f1f2e',
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  } catch (e) {
+    showToast('生成失败：内容过长或含非法字符');
+    document.body.removeChild(tmp);
+    return;
+  }
+
+  /* copy whatever qrcode.js drew into our canvas */
+  const srcCanvas = tmp.querySelector('canvas');
+  const srcImg    = tmp.querySelector('img');
+
+  if (srcCanvas) {
+    canvas.width  = srcCanvas.width;
+    canvas.height = srcCanvas.height;
+    canvas.getContext('2d').drawImage(srcCanvas, 0, 0);
+  } else if (srcImg) {
+    /* some browsers get an img instead */
+    srcImg.onload = () => {
+      canvas.width  = srcImg.naturalWidth  || 240;
+      canvas.height = srcImg.naturalHeight || 240;
+      canvas.getContext('2d').drawImage(srcImg, 0, 0);
+    };
+  }
+
+  document.body.removeChild(tmp);
+}
+
+(async () => {
+  try {
+    const res = await fetch('config.json', { cache: 'no-store' });
+    if (!res.ok) throw 0;
+    const payload = await res.json();
+    if (payload?.version !== 1 || !Array.isArray(payload.groups) || !Array.isArray(payload.services)) {
+      throw new Error('config.json 格式无效');
+    }
+    groupData = payload.groups;
+    appData = payload.services.map(item => ({
+      ...item,
+      name: String(item.name || ''),
+      local_ip: String(item.local_ip || ''),
+      tailscale_ip: String(item.tailscale_ip || ''),
+      port: String(item.port || ''),
+      tag: String(item.tag || ''),
+      icon_path: String(item.icon_path || ''),
+      pinned: item.pinned === true,
+      order: Number.isInteger(item.order) ? item.order : 0,
+    })).filter(item => item.name);
+  } catch (err) {
+    console.error('config.json 加载失败', err);
+    document.getElementById('page').innerHTML = '<div class="empty-state">配置加载失败，请检查 config.json</div>';
+    return;
+  }
+  render();
+})();
+</script>
+</body>
+</html>

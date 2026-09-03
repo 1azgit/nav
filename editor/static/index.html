@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OmniNav 配置编辑器</title>
+  <style>
+    :root { color-scheme: light; --bg:#f4f6f8; --panel:#fff; --line:#d9dee5; --text:#18212b; --muted:#66717d; --accent:#1769e0; --danger:#b42318; --ok:#067647; --r:8px; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--text); font:14px/1.45 system-ui,-apple-system,"Segoe UI","Noto Sans SC",sans-serif; }
+    button,input,select { font:inherit; } button { min-height:40px; border:1px solid var(--line); border-radius:6px; background:#fff; color:var(--text); padding:0 12px; cursor:pointer; } button:hover { border-color:#9aa7b5; background:#f8fafc; } button.primary { background:var(--accent); color:#fff; border-color:var(--accent); } button.danger { color:var(--danger); }
+    .topbar { position:sticky; top:0; z-index:4; display:flex; align-items:center; justify-content:space-between; gap:16px; min-height:64px; padding:12px 20px; background:rgba(255,255,255,.96); border-bottom:1px solid var(--line); }
+    .brand { font-weight:700; } .brand small { display:block; color:var(--muted); font-weight:400; } .actions { display:flex; gap:8px; flex-wrap:wrap; }
+    .status { min-height:24px; padding:8px 20px; color:var(--muted); background:#fff; border-bottom:1px solid var(--line); } .status.error { color:var(--danger); } .status.ok { color:var(--ok); }
+    .workspace { display:grid; grid-template-columns:240px minmax(320px,1fr) minmax(300px,380px); gap:12px; max-width:1500px; margin:0 auto; padding:16px; } .panel { min-width:0; background:var(--panel); border:1px solid var(--line); border-radius:var(--r); overflow:hidden; } .panel-head { display:flex; justify-content:space-between; align-items:center; gap:8px; padding:12px; border-bottom:1px solid var(--line); } .panel-head h2 { margin:0; font-size:14px; }
+    .list { padding:8px; } .list-item { display:flex; align-items:center; gap:8px; padding:9px 8px; margin-bottom:6px; border:1px solid transparent; border-radius:6px; cursor:pointer; } .list-item:hover { background:#f6f8fa; } .list-item.active { background:#eaf2ff; border-color:#b8d2ff; } .list-item[draggable=true] { cursor:grab; } .list-item .grow { flex:1; min-width:0; } .list-item strong,.list-item span { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .list-item span { color:var(--muted); font-size:12px; }
+    .service-row { display:grid; grid-template-columns:28px 44px minmax(0,1fr) auto; align-items:center; gap:10px; padding:9px 10px; margin-bottom:8px; border:1px solid var(--line); border-radius:6px; background:#fff; } .service-row.active { border-color:#8bb5ff; box-shadow:0 0 0 2px #eaf2ff; } .drag { color:var(--muted); cursor:grab; text-align:center; font-size:18px; } .thumb { width:40px; height:40px; object-fit:cover; border-radius:6px; background:#e7edf4; } .service-actions { display:flex; gap:4px; } .service-actions button { min-width:36px; padding:0 8px; }
+    .form { padding:14px; } .field { margin-bottom:14px; } label { display:block; margin-bottom:5px; color:var(--muted); font-size:12px; font-weight:600; } input,select { width:100%; min-height:40px; padding:7px 9px; border:1px solid var(--line); border-radius:6px; background:#fff; } input[type=checkbox] { width:18px; min-height:18px; } .check { display:flex; align-items:center; gap:8px; color:var(--text); } .two { display:grid; grid-template-columns:1fr 1fr; gap:10px; } .preview { display:flex; align-items:center; gap:10px; padding:10px; background:#f6f8fa; border-radius:6px; } .preview img { width:52px; height:52px; object-fit:cover; border-radius:8px; }
+    .empty { padding:28px 14px; text-align:center; color:var(--muted); } .footer-note { padding:10px 14px; color:var(--muted); font-size:12px; border-top:1px solid var(--line); } @media (max-width:900px) { .workspace { grid-template-columns:200px 1fr; } .details { grid-column:1/-1; } } @media (max-width:640px) { .topbar { align-items:flex-start; flex-direction:column; } .workspace { display:block; padding:10px; } .panel { margin-bottom:10px; } .two { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+  <header class="topbar"><div class="brand">OmniNav <small>NAS 配置编辑器</small></div><div class="actions"><button id="newGroup">新建分组</button><button id="save" class="primary">保存草稿</button><button id="publish" class="primary">发布到服务器</button></div></header>
+  <div id="status" class="status" role="status">正在加载配置...</div>
+  <main class="workspace">
+    <section class="panel"><div class="panel-head"><h2>分组</h2><span id="groupCount"></span></div><div id="groups" class="list"></div></section>
+    <section class="panel"><div class="panel-head"><h2 id="servicesTitle">服务</h2><button id="newService">新增服务</button></div><div id="services" class="list"></div><div class="footer-note">拖动排序，或使用每行的上下按钮。</div></section>
+    <section class="panel details"><div class="panel-head"><h2>属性</h2></div><div id="details" class="form"><div class="empty">选择一个分组或服务开始编辑。</div></div></section>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>

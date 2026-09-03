@@ -1,0 +1,315 @@
+# OmniNav 服务配置
+# 每个 [[services]] 是一个导航入口。
+# pinned = true 表示显示在常用区；tag 只取第一个字显示在图标右下角。
+# group = "" 可填写分组名；留空会显示在“未分组”。
+# icon_path 只使用 icons/ 一层目录，例如 icons/emby.ico；文件名用页面标题第一个英文单词。
+
+[[services]]
+name = "AIwebUI"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "16830"
+pinned = true
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "MDCx"
+group = "影视工具"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "13077"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "emby"
+group = "影视工具"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "8096"
+pinned = true
+tag = "7"
+icon_path = "icons/emby.ico"
+
+[[services]]
+name = "embyzdz"
+group = "影视工具"
+local_ip = "pub1.emby.wtf"
+tailscale_ip = ""
+port = "443"
+pinned = false
+tag = "终"
+icon_path = ""
+
+[[services]]
+name = "相册"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "5000"
+pinned = false
+tag = ""
+icon_path = "icons/photos.png"
+
+[[services]]
+name = "MoonTV"
+group = "影视工具"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "13005"
+pinned = true
+tag = ""
+icon_path = "icons/moontv.png"
+
+[[services]]
+name = "moviepilot"
+group = "影视工具"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "13000"
+pinned = false
+tag = ""
+icon_path = "icons/moviepilot.ico"
+
+[[services]]
+name = "酒馆"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "36580"
+pinned = true
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "群晖"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "5000"
+pinned = true
+tag = "7"
+icon_path = "icons/synology.png"
+
+[[services]]
+name = "群晖"
+group = ""
+local_ip = "10.10.10.253"
+tailscale_ip = ""
+port = "5000"
+pinned = false
+tag = "2"
+icon_path = ""
+
+[[services]]
+name = "路由器"
+group = "路由"
+local_ip = "10.10.10.251"
+tailscale_ip = ""
+port = "80"
+pinned = false
+tag = "1"
+icon_path = ""
+
+[[services]]
+name = "路由器"
+group = "路由"
+local_ip = "10.10.10.216"
+tailscale_ip = ""
+port = "80"
+pinned = false
+tag = "K"
+icon_path = ""
+
+[[services]]
+name = "FRP"
+group = "路由"
+local_ip = "100.96.109.74"
+tailscale_ip = ""
+port = "27277"
+pinned = true
+tag = "香"
+icon_path = "icons/frp.ico"
+
+[[services]]
+name = "Docker"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "9000"
+pinned = true
+tag = "Portainer"
+icon_path = "icons/docker.png"
+
+[[services]]
+name = "sub2api"
+group = "AI"
+local_ip = "10.10.10.222"
+tailscale_ip = "100.70.38.51"
+port = "8080"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "IYUU"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "28780"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "下载"
+group = "下载"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "6880"
+pinned = false
+tag = "ARIA"
+icon_path = ""
+
+[[services]]
+name = "下载qB"
+group = "下载"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "8880"
+pinned = false
+tag = "7"
+icon_path = "icons/qbittorrent.png"
+
+[[services]]
+name = "MT"
+group = "下载"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "8001"
+pinned = false
+tag = ""
+icon_path = "icons/mt.svg"
+
+[[services]]
+name = "订阅sub"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "13001"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "图片压缩"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "17777"
+pinned = false
+tag = ""
+icon_path = "icons/image.ico"
+
+[[services]]
+name = "素材采集"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "16883"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "PDF工具箱"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "18300"
+pinned = false
+tag = ""
+icon_path = "icons/pdf.ico"
+
+[[services]]
+name = "唤醒"
+group = "路由"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "3300"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "镜像代理"
+group = "下载"
+local_ip = "hf-mirror.com"
+tailscale_ip = ""
+port = "443"
+pinned = false
+tag = "HF"
+icon_path = "icons/hf.ico"
+
+[[services]]
+name = "CPA"
+group = "AI"
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "8317/management.html"
+pinned = true
+tag = ""
+icon_path = "icons/cpa.svg"
+
+[[services]]
+name = "DY采集"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "16833"
+pinned = false
+tag = ""
+icon_path = "icons/dy.png"
+
+[[services]]
+name = "小雅ALIST"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "5245"
+pinned = false
+tag = "A"
+icon_path = ""
+
+[[services]]
+name = "OLIST腾讯深圳"
+group = ""
+local_ip = "olist.1az.cc"
+tailscale_ip = "olist.1az.cc"
+port = "443"
+pinned = false
+tag = "腾"
+icon_path = "icons/olist.svg"
+
+[[services]]
+name = "备份中心"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "36677"
+pinned = false
+tag = ""
+icon_path = ""
+
+[[services]]
+name = "wp-test"
+group = ""
+local_ip = "10.10.10.250"
+tailscale_ip = "100.70.38.51"
+port = "38880"
+pinned = false
+tag = ""
+icon_path = "icons/wp.png"
