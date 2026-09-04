@@ -83,8 +83,6 @@ def validate_config(payload: object) -> list[str]:
             errors.append(f"service {service_id} references an unknown group")
         if not isinstance(service.get("order"), int):
             errors.append(f"service {service_id} order must be an integer")
-        if not isinstance(service.get("pinned"), bool):
-            errors.append(f"service {service_id} pinned must be boolean")
         if not isinstance(service.get("position"), (dict, type(None))):
             errors.append(f"service {service_id} position must be object or null")
     return errors

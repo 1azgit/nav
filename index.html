@@ -178,7 +178,7 @@ body {
 }
 .grid-all.is-closed { max-height: 0 !important; opacity: 0; pointer-events: none; }
 
-/* ── CARDS — pinned (large) ─────────────────────────── */
+/* ── CARDS — favorites and grouped services ────────── */
 .card {
   display: flex; flex-direction: column;
   align-items: center; justify-content: flex-end;
@@ -870,6 +870,9 @@ function buildServiceGroup(group, groupIdx, cardSize, allCols) {
   const count = group.services.length;
   const limit = Number.isInteger(group.max_items) ? group.max_items : null;
   const expanded = expandedGroups.has(group.id);
+  // The global "显示全部" action expands every group, including groups that
+  // have a max_items preview limit. Individual group controls can still
+  // collapse a group again while the grouped view remains open.
   const visible = limit && !expanded ? group.services.slice(0, limit) : group.services;
   box.className = 'service-group';
 
@@ -915,28 +918,21 @@ function render() {
 
   const { pinCard, pinCols, allCols } = calcSizes();
 
-  /* ── 1. Pinned (only shown before "显示全部") ─────── */
-  const pinned = appData.filter(a => a.pinned);
-  if (!allOpen && pinned.length) {
-    const pinRows = Math.ceil(pinned.length / pinCols);
-    const head = mkEl('div', 'row-head');
-    head.innerHTML = `
-      <span class="row-title accent">▸ 常用</span>
-      <div class="row-line"></div>`;
-    page.appendChild(head);
-
-    const grid = mkEl('div', 'grid');
-    grid.style.gridTemplateColumns = colsTpl(pinCols, pinCard);
-    grid.style.maxHeight = (pinRows * pinCard + Math.max(0, pinRows - 1) * GAP + 30) + 'px';
-    grid.style.overflow  = 'hidden';
-    pinned.forEach((item, i) => grid.appendChild(buildCard(item, i, false, pinCard)));
-    page.appendChild(grid);
-
+  /* ── 1. Favorites group (shown before "显示全部") ── */
+  const favoritesGroup = groupData.find(group => group.id === 'favorites');
+  const favoriteItems = appData.filter(item => item.group_id === 'favorites');
+  if (!allOpen && favoritesGroup && favoriteItems.length) {
+    page.appendChild(buildServiceGroup(
+      { ...favoritesGroup, services: favoriteItems.slice().sort((a, b) => a.order - b.order) },
+      0,
+      pinCard,
+      pinCols,
+    ));
     page.appendChild(mkEl('div', 'gap'));
   }
 
   /* ── 2. All-apps (grouped, collapsible) ─────────── */
-  const groupedItems = allOpen ? appData : appData.filter(a => !a.pinned);
+  const groupedItems = allOpen ? appData : appData.filter(a => a.group_id !== 'favorites');
   if (groupedItems.length) {
     /* row header (kept small, label only) */
     const head2 = mkEl('div', 'row-head');
@@ -962,6 +958,13 @@ function render() {
 
     function doToggle() {
       allOpen = !allOpen;
+      if (allOpen) {
+        // Expand every rendered group so the global action never leaves a
+        // group clipped by its own max_items setting.
+        groupData.forEach(group => expandedGroups.add(group.id));
+      } else {
+        expandedGroups.clear();
+      }
       render();
     }
     toggleBtn.addEventListener('click', doToggle);
@@ -1417,7 +1420,6 @@ function _renderQR(canvas, text) {
       port: String(item.port || ''),
       tag: String(item.tag || ''),
       icon_path: String(item.icon_path || ''),
-      pinned: item.pinned === true,
       order: Number.isInteger(item.order) ? item.order : 0,
     })).filter(item => item.name);
   } catch (err) {

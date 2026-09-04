@@ -5,7 +5,7 @@
 ## 功能
 
 - 本地网络 / Tailscale 地址切换
-- 服务分组、组内排序和常用服务区域
+- 服务分组、组内排序和“常用”分组
 - 每组独立列数与最大显示数量，线上支持展开/收起
 - 从 `icons/` 目录选择图标，缺失图标自动回退为首字母
 - NAS Web 编辑器：拖拽排序、跨分组移动、服务属性编辑、草稿保存
@@ -53,6 +53,13 @@ python -m http.server 8000
   "version": 1,
   "groups": [
     {
+      "id": "favorites",
+      "name": "常用",
+      "order": 0,
+      "columns": 5,
+      "max_items": null
+    },
+    {
       "id": "media",
       "name": "影视工具",
       "order": 10,
@@ -68,7 +75,6 @@ python -m http.server 8000
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "8096",
-      "pinned": true,
       "tag": "",
       "icon_path": "icons/emby.ico",
       "order": 10,
@@ -78,7 +84,7 @@ python -m http.server 8000
 }
 ```
 
-`order` 控制显示顺序；`columns` 允许 `1-12`；`max_items` 为 `null` 时不限制显示数量；`position` 暂为未来自由定位预留。每个 `id` 必须唯一，服务的 `group_id` 必须引用现有分组。
+`order` 控制显示顺序；`columns` 允许 `1-12`；`max_items` 为 `null` 时不限制显示数量；`position` 暂为未来自由定位预留。每个 `id` 必须唯一，服务的 `group_id` 必须引用现有分组。`favorites` 是固定的“常用”分组，常用服务直接归属该分组并按 `services[].order` 排序，不再使用 `pinned` 字段。
 
 ## NAS 编辑器部署
 
@@ -90,7 +96,7 @@ python -m http.server 8000
 python migrate_config.py
 ```
 
-脚本会生成根目录 `config.json`，当前数据应包含 31 个服务和 5 个分组。
+脚本会生成根目录 `config.json`，当前数据应包含 31 个服务和 6 个分组（含 `favorites` 常用分组）。
 
 ### 2. 配置远端目标
 

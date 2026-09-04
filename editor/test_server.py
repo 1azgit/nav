@@ -18,7 +18,7 @@ def sample():
     return {
         "version": 1,
         "groups": [{"id": "g", "name": "组", "order": 10, "columns": 5, "max_items": None}],
-        "services": [{"id": "s", "name": "服务", "group_id": "g", "local_ip": "127.0.0.1", "tailscale_ip": "", "port": "80", "pinned": False, "tag": "", "icon_path": "", "order": 10, "position": None}],
+        "services": [{"id": "s", "name": "服务", "group_id": "g", "local_ip": "127.0.0.1", "tailscale_ip": "", "port": "80", "tag": "", "icon_path": "", "order": 10, "position": None}],
     }
 
 

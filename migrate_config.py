@@ -48,12 +48,23 @@ def migrate(source: Path, target: Path) -> dict[str, Any]:
     source_services = parse_toml(source)
     group_ids: dict[str, str] = {}
     used_ids: set[str] = set()
-    groups: list[dict[str, Any]] = []
+    groups: list[dict[str, Any]] = [{
+        "id": "favorites",
+        "name": "常用",
+        "order": 0,
+        "columns": 5,
+        "max_items": None,
+    }]
+    used_ids.add("favorites")
     services: list[dict[str, Any]] = []
+    group_orders: dict[str, int] = {"favorites": 0}
 
     for service_index, item in enumerate(source_services):
+        pinned = item.get("pinned") is True
         group_name = str(item.get("group") or "").strip() or "未分组"
-        if group_name not in group_ids:
+        if pinned:
+            group_id = "favorites"
+        elif group_name not in group_ids:
             base = "ungrouped" if group_name == "未分组" else slug(group_name)
             group_id = base
             suffix = 2
@@ -69,20 +80,24 @@ def migrate(source: Path, target: Path) -> dict[str, Any]:
                 "columns": 5,
                 "max_items": None,
             })
+            group_orders[group_id] = 0
+        else:
+            group_id = group_ids[group_name]
+
+        group_orders[group_id] = group_orders.get(group_id, 0) + 10
 
         base_id = slug(str(item.get("name") or "service"))
         service_id = f"{base_id}-{service_index + 1}"
         services.append({
             "id": service_id,
             "name": str(item.get("name") or ""),
-            "group_id": group_ids[group_name],
+            "group_id": group_id,
             "local_ip": str(item.get("local_ip") or ""),
             "tailscale_ip": str(item.get("tailscale_ip") or ""),
             "port": str(item.get("port") or ""),
-            "pinned": bool(item.get("pinned") is True),
             "tag": str(item.get("tag") or ""),
             "icon_path": str(item.get("icon_path") or ""),
-            "order": (service_index + 1) * 10,
+            "order": group_orders[group_id],
             "position": None,
         })
 

@@ -2,8 +2,8 @@
   "version": 1,
   "groups": [
     {
-      "id": "ungrouped",
-      "name": "未分组",
+      "id": "favorites",
+      "name": "常用",
       "order": 0,
       "columns": 5,
       "max_items": null
@@ -16,23 +16,30 @@
       "max_items": null
     },
     {
+      "id": "ungrouped",
+      "name": "未分组",
+      "order": 20,
+      "columns": 5,
+      "max_items": null
+    },
+    {
       "id": "group-2",
       "name": "路由",
-      "order": 20,
+      "order": 30,
       "columns": 5,
       "max_items": null
     },
     {
       "id": "ai",
       "name": "AI",
-      "order": 30,
+      "order": 40,
       "columns": 5,
       "max_items": null
     },
     {
       "id": "group-3",
       "name": "下载",
-      "order": 40,
+      "order": 50,
       "columns": 5,
       "max_items": null
     }
@@ -41,11 +48,10 @@
     {
       "id": "aiwebui-1",
       "name": "AIwebUI",
-      "group_id": "ungrouped",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "16830",
-      "pinned": true,
       "tag": "",
       "icon_path": "",
       "order": 10,
@@ -58,23 +64,21 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "13077",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 20,
+      "order": 10,
       "position": null
     },
     {
       "id": "emby-3",
       "name": "emby",
-      "group_id": "group",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "8096",
-      "pinned": true,
       "tag": "7",
       "icon_path": "icons/emby.ico",
-      "order": 30,
+      "order": 20,
       "position": null
     },
     {
@@ -84,10 +88,9 @@
       "local_ip": "pub1.emby.wtf",
       "tailscale_ip": "",
       "port": "443",
-      "pinned": false,
       "tag": "终",
       "icon_path": "",
-      "order": 40,
+      "order": 20,
       "position": null
     },
     {
@@ -97,23 +100,21 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "5000",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/photos.png",
-      "order": 50,
+      "order": 10,
       "position": null
     },
     {
       "id": "moontv-6",
       "name": "MoonTV",
-      "group_id": "group",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "13005",
-      "pinned": true,
       "tag": "",
       "icon_path": "icons/moontv.png",
-      "order": 60,
+      "order": 30,
       "position": null
     },
     {
@@ -123,36 +124,33 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "13000",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/moviepilot.ico",
-      "order": 70,
+      "order": 30,
       "position": null
     },
     {
       "id": "group-8",
       "name": "酒馆",
-      "group_id": "ungrouped",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "36580",
-      "pinned": true,
       "tag": "",
       "icon_path": "",
-      "order": 80,
+      "order": 40,
       "position": null
     },
     {
       "id": "group-9",
       "name": "群晖",
-      "group_id": "ungrouped",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "5000",
-      "pinned": true,
       "tag": "7",
       "icon_path": "icons/synology.png",
-      "order": 90,
+      "order": 50,
       "position": null
     },
     {
@@ -162,10 +160,9 @@
       "local_ip": "10.10.10.253",
       "tailscale_ip": "",
       "port": "5000",
-      "pinned": false,
       "tag": "2",
       "icon_path": "",
-      "order": 100,
+      "order": 20,
       "position": null
     },
     {
@@ -175,10 +172,9 @@
       "local_ip": "10.10.10.251",
       "tailscale_ip": "",
       "port": "80",
-      "pinned": false,
       "tag": "1",
       "icon_path": "",
-      "order": 110,
+      "order": 10,
       "position": null
     },
     {
@@ -188,36 +184,33 @@
       "local_ip": "10.10.10.216",
       "tailscale_ip": "",
       "port": "80",
-      "pinned": false,
       "tag": "K",
       "icon_path": "",
-      "order": 120,
+      "order": 20,
       "position": null
     },
     {
       "id": "frp-13",
       "name": "FRP",
-      "group_id": "group-2",
+      "group_id": "favorites",
       "local_ip": "100.96.109.74",
       "tailscale_ip": "",
       "port": "27277",
-      "pinned": true,
       "tag": "香",
       "icon_path": "icons/frp.ico",
-      "order": 130,
+      "order": 60,
       "position": null
     },
     {
       "id": "docker-14",
       "name": "Docker",
-      "group_id": "ungrouped",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "9000",
-      "pinned": true,
       "tag": "Portainer",
       "icon_path": "icons/docker.png",
-      "order": 140,
+      "order": 70,
       "position": null
     },
     {
@@ -227,10 +220,9 @@
       "local_ip": "10.10.10.222",
       "tailscale_ip": "100.70.38.51",
       "port": "8080",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 150,
+      "order": 10,
       "position": null
     },
     {
@@ -240,10 +232,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "28780",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 160,
+      "order": 30,
       "position": null
     },
     {
@@ -253,10 +244,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "6880",
-      "pinned": false,
       "tag": "ARIA",
       "icon_path": "",
-      "order": 170,
+      "order": 10,
       "position": null
     },
     {
@@ -266,10 +256,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "8880",
-      "pinned": false,
       "tag": "7",
       "icon_path": "icons/qbittorrent.png",
-      "order": 180,
+      "order": 20,
       "position": null
     },
     {
@@ -279,10 +268,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "8001",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/mt.svg",
-      "order": 190,
+      "order": 30,
       "position": null
     },
     {
@@ -292,10 +280,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "13001",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 200,
+      "order": 40,
       "position": null
     },
     {
@@ -305,10 +292,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "17777",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/image.ico",
-      "order": 210,
+      "order": 50,
       "position": null
     },
     {
@@ -318,10 +304,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "16883",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 220,
+      "order": 60,
       "position": null
     },
     {
@@ -331,10 +316,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "18300",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/pdf.ico",
-      "order": 230,
+      "order": 70,
       "position": null
     },
     {
@@ -344,10 +328,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "3300",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 240,
+      "order": 30,
       "position": null
     },
     {
@@ -357,23 +340,21 @@
       "local_ip": "hf-mirror.com",
       "tailscale_ip": "",
       "port": "443",
-      "pinned": false,
       "tag": "HF",
       "icon_path": "icons/hf.ico",
-      "order": 250,
+      "order": 40,
       "position": null
     },
     {
       "id": "cpa-26",
       "name": "CPA",
-      "group_id": "ai",
+      "group_id": "favorites",
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "8317/management.html",
-      "pinned": true,
       "tag": "",
       "icon_path": "icons/cpa.svg",
-      "order": 260,
+      "order": 80,
       "position": null
     },
     {
@@ -383,10 +364,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "16833",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/dy.png",
-      "order": 270,
+      "order": 80,
       "position": null
     },
     {
@@ -396,10 +376,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "5245",
-      "pinned": false,
       "tag": "A",
       "icon_path": "",
-      "order": 280,
+      "order": 90,
       "position": null
     },
     {
@@ -409,10 +388,9 @@
       "local_ip": "olist.1az.cc",
       "tailscale_ip": "olist.1az.cc",
       "port": "443",
-      "pinned": false,
       "tag": "腾",
       "icon_path": "icons/olist.svg",
-      "order": 290,
+      "order": 100,
       "position": null
     },
     {
@@ -422,10 +400,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "36677",
-      "pinned": false,
       "tag": "",
       "icon_path": "",
-      "order": 300,
+      "order": 110,
       "position": null
     },
     {
@@ -435,10 +412,9 @@
       "local_ip": "10.10.10.250",
       "tailscale_ip": "100.70.38.51",
       "port": "38880",
-      "pinned": false,
       "tag": "",
       "icon_path": "icons/wp.png",
-      "order": 310,
+      "order": 120,
       "position": null
     }
   ]

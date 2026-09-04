@@ -1,6 +1,6 @@
 # OmniNav 服务配置
 # 每个 [[services]] 是一个导航入口。
-# pinned = true 表示显示在常用区；tag 只取第一个字显示在图标右下角。
+# pinned = true 仅用于迁移到 JSON 的旧字段；JSON 中请将服务移动到 favorites 分组。
 # group = "" 可填写分组名；留空会显示在“未分组”。
 # icon_path 只使用 icons/ 一层目录，例如 icons/emby.ico；文件名用页面标题第一个英文单词。
 

@@ -1,6 +1,6 @@
 # OmniNav NAS 编辑器
 
-该服务在 NAS 上提供可视化编辑器，并把 `config.json` 发布到固定的 Tailscale SSH 目标。
+该服务在 NAS 上提供可视化编辑器，并把 `config.json` 发布到固定的 Tailscale SSH 目标。“常用”是配置中的 `favorites` 普通分组，可直接拖拽服务调整顺序。
 
 1. 先在项目根目录执行 `python migrate_config.py` 生成 `config.json`。
 2. 复制 `.env.example` 为 `.env`，填写远端 Tailscale 主机、SSH 用户、认证方式和目标 JSON 路径。
