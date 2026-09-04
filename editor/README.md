@@ -10,3 +10,9 @@
 认证支持私钥或密码：私钥模式填写 `REMOTE_KEY_PATH_HOST` 并留空 `REMOTE_PASSWORD`；密码模式填写 `REMOTE_PASSWORD`，将 `REMOTE_KEY_PATH_HOST` 设为 `/dev/null`。容器仍会严格校验 `known_hosts`，远端主机必须已登记。密码只存在于容器环境变量中，不会由浏览器提交或写入配置文件。发布使用临时文件上传后原子 `mv`，不会创建备份。
 
 图标更新脚本位于项目根目录，与 `config.json` 同目录。运行 `python fetch_icons.py` 会获取服务页面图标并原子更新 `config.json` 的 `icon_path` 字段。
+
+保存文件权限：编辑器会将新生成的 `config.json` 设置为 `0664`，便于 NAS 用户读取和覆盖。升级前如果旧文件仍是 `0600`，在 NAS 上执行一次：
+
+```bash
+chmod 664 /root/docker/nav/config.json
+```

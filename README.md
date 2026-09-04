@@ -170,3 +170,5 @@ node --check editor/static/app.js
 ## 图标更新
 
 `fetch_icons.py` 与 `config.json` 位于同一目录。运行 `python fetch_icons.py` 会从服务页面获取最新图标，更新配置中的 `icon_path`，并以原子方式写回同目录的 `config.json`。
+
+编辑器保存后的配置文件权限为 `0664`。如果升级前的旧文件是 `0600`，请在 NAS 上执行 `chmod 664 config.json` 一次。

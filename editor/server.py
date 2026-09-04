@@ -33,6 +33,9 @@ REMOTE_PASSWORD = os.environ.get("REMOTE_PASSWORD", "")
 REMOTE_KNOWN_HOSTS = os.environ.get("REMOTE_KNOWN_HOSTS", "/root/.ssh/known_hosts")
 REMOTE_CONFIG_PATH = os.environ.get("REMOTE_CONFIG_PATH", "")
 MAX_BODY = 2 * 1024 * 1024
+# config.json contains navigation data only (no credentials). Keep the file
+# writable/readable for the NAS user even though the container runs as root.
+CONFIG_FILE_MODE = 0o664
 WRITE_LOCK = threading.Lock()
 
 
@@ -97,6 +100,7 @@ def atomic_write(path: Path, payload: object) -> None:
             stream.write("\n")
             stream.flush()
             os.fsync(stream.fileno())
+        os.chmod(temp_name, CONFIG_FILE_MODE)
         os.replace(temp_name, path)
     finally:
         if os.path.exists(temp_name):

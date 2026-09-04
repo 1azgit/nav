@@ -1,4 +1,6 @@
 import json
+import os
+import stat
 import tempfile
 import unittest
 from pathlib import Path
@@ -43,6 +45,8 @@ class ConfigTests(unittest.TestCase):
             path = Path(directory) / "config.json"
             atomic_write(path, sample())
             self.assertEqual(json.loads(path.read_text(encoding="utf-8"))["version"], 1)
+            if os.name != "nt":
+                self.assertEqual(stat.S_IMODE(path.stat().st_mode), 0o664)
 
     def test_password_authentication(self):
         with patch.object(server, "REMOTE_KEY_PATH", ""), patch.object(server, "REMOTE_PASSWORD", "secret"):
