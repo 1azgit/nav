@@ -57,7 +57,7 @@ python -m http.server 8000
       "name": "常用",
       "order": 0,
       "columns": 5,
-      "max_items": null
+      "max_items": 10
     },
     {
       "id": "media",
@@ -84,7 +84,7 @@ python -m http.server 8000
 }
 ```
 
-`order` 控制显示顺序；`columns` 允许 `1-12`；`max_items` 为 `null` 时不限制显示数量；`position` 暂为未来自由定位预留。每个 `id` 必须唯一，服务的 `group_id` 必须引用现有分组。`favorites` 是固定的“常用”分组，常用服务直接归属该分组并按 `services[].order` 排序，不再使用 `pinned` 字段。
+`order` 控制显示顺序；`columns` 允许 `1-12`；`max_items` 为 `null` 时不限制显示数量；`position` 暂为未来自由定位预留。每个 `id` 必须唯一，服务的 `group_id` 必须引用现有分组。`favorites` 是固定的“常用”分组：始终位于首页第一行，最多显示 10 个服务并保持单行居中排列；常用服务直接归属该分组并按 `services[].order` 排序，不再使用 `pinned` 字段。
 
 ## NAS 编辑器部署
 

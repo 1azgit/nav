@@ -352,6 +352,18 @@ body {
   gap: 8px;
   justify-content: start;
 }
+.favorites-group { width: 100%; }
+.favorites-group .group-title { justify-content: center; }
+.favorites-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0 4px 4px;
+}
+.favorites-grid .card { flex: 0 0 auto; }
 
 /* ── GAP ────────────────────────────────────────────── */
 .gap { height: 24px; }
@@ -909,6 +921,27 @@ function buildServiceGroup(group, groupIdx, cardSize, allCols) {
   return box;
 }
 
+function buildFavoritesGroup(group, cardSize) {
+  const box = document.createElement('section');
+  box.className = 'service-group favorites-group';
+  const title = document.createElement('div');
+  title.className = 'group-title';
+  const titleText = document.createElement('span');
+  titleText.textContent = group.name;
+  const titleCount = document.createElement('span');
+  titleCount.className = 'group-count';
+  titleCount.textContent = group.services.length;
+  title.append(titleText, titleCount);
+  box.appendChild(title);
+
+  const grid = document.createElement('div');
+  grid.className = 'favorites-grid';
+  group.services.slice().sort((a, b) => a.order - b.order).slice(0, 10)
+    .forEach((item, i) => grid.appendChild(buildCard(item, i, false, cardSize, false)));
+  box.appendChild(grid);
+  return box;
+}
+
 /* ═══════════════════════════════════════════════════
    RENDER
 ═══════════════════════════════════════════════════ */
@@ -921,18 +954,16 @@ function render() {
   /* ── 1. Favorites group (shown before "显示全部") ── */
   const favoritesGroup = groupData.find(group => group.id === 'favorites');
   const favoriteItems = appData.filter(item => item.group_id === 'favorites');
-  if (!allOpen && favoritesGroup && favoriteItems.length) {
-    page.appendChild(buildServiceGroup(
+  if (favoritesGroup && favoriteItems.length) {
+    page.appendChild(buildFavoritesGroup(
       { ...favoritesGroup, services: favoriteItems.slice().sort((a, b) => a.order - b.order) },
-      0,
       pinCard,
-      pinCols,
     ));
     page.appendChild(mkEl('div', 'gap'));
   }
 
   /* ── 2. All-apps (grouped, collapsible) ─────────── */
-  const groupedItems = allOpen ? appData : appData.filter(a => a.group_id !== 'favorites');
+  const groupedItems = appData.filter(a => a.group_id !== 'favorites');
   if (groupedItems.length) {
     /* row header (kept small, label only) */
     const head2 = mkEl('div', 'row-head');

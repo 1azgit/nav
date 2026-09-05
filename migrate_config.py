@@ -53,7 +53,7 @@ def migrate(source: Path, target: Path) -> dict[str, Any]:
         "name": "常用",
         "order": 0,
         "columns": 5,
-        "max_items": None,
+        "max_items": 10,
     }]
     used_ids.add("favorites")
     services: list[dict[str, Any]] = []
